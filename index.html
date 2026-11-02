@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมภารกิจพิชิตฮาร์ดแวร์หุ่นยนต์ - สัปดาห์ที่ 2</title>
+    <!-- html2canvas library สำหรับช่วยแคปหน้าจอสรุปผลงานเป็นภาพ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --primary: #4f46e5;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #0f172a;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 820px;
+            background: var(--bg-color);
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            box-sizing: border-box;
+            border: 3px solid #38bdf8;
+        }
+
+        .step-section {
+            display: none;
+        }
+
+        .step-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.4rem;
+            margin-top: 0;
+            text-align: center;
+        }
+
+        p {
+            color: #475569;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 12px;
+        }
+
+        .btn:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        /* Match Game Styles */
+        .match-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .column h4 {
+            text-align: center;
+            color: var(--secondary);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .item-box {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        .item-box img {
+            max-width: 45px;
+            max-height: 35px;
+        }
+
+        .item-box.selected {
+            border-color: var(--accent);
+            background: #fef3c7;
+            font-weight: 600;
+        }
+
+        .item-box.matched {
+            border-color: #10b981;
+            background: #d1fae5;
+            color: #065f46;
+            cursor: default;
+        }
+
+        /* Canvas Styles */
+        .canvas-container {
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        canvas {
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            background: #ffffff;
+            cursor: crosshair;
+            touch-action: none;
+            max-width: 100%;
+        }
+
+        .canvas-tools {
+            margin-top: 6px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tool-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-family: 'Prompt', sans-serif;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .tool-btn.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        /* Report Card Container (สำหรับแคปเป็น 1 ภาพ) */
+        #reportCard {
+            background: #ffffff;
+            border: 3px solid var(--primary);
+            border-radius: 16px;
+            padding: 20px;
+            box-sizing: border-box;
+            margin-top: 10px;
+        }
+
+        .report-header {
+            text-align: center;
+            border-bottom: 2px dashed #e2e8f0;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .report-item {
+            background: #f8fafc;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .report-canvas-preview {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .report-canvas-preview img {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            max-height: 130px;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- STEP 1: Register -->
+    <div id="step1" class="step-section active">
+        <h2>🤖 เกมภารกิจพิชิตฮาร์ดแวร์หุ่นยนต์</h2>
+        <p style="text-align: center; margin-bottom: 15px;">กรอกข้อมูลส่วนตัวเพื่อเริ่มทำภารกิจสะสมคะแนนกันเลยจ้า!</p>
+        <div class="form-group">
+            <label>เลขที่:</label>
+            <input type="text" id="studentNo" placeholder="เช่น 15">
+        </div>
+        <div class="form-group">
+            <label>ชื่อเล่น:</label>
+            <input type="text" id="studentNickname" placeholder="เช่น น้องมิน">
+        </div>
+        <div class="form-group">
+            <label>ชื่อ - นามสกุล:</label>
+            <input type="text" id="studentName" placeholder="เช่น เด็กชายรักเรียน เพียรศึกษา">
+        </div>
+        <button class="btn" onclick="startToStep2()">เริ่มเล่นเกมเลย! 🚀</button>
+    </div>
+
+    <!-- STEP 2: Match Game -->
+    <div id="step2" class="step-section">
+        <h2>🧩 ด่านที่ 1: จับคู่อุปกรณ์ หน้าที่ และชื่อ</h2>
+        <p>คลิกเลือก "ภาพอุปกรณ์" ➔ "ชื่ออุปกรณ์" ➔ "หน้าที่ของอุปกรณ์" ให้ถูกต้องครบทุกข้อจึงจะผ่านไปด่านถัดไปได้</p>
+        <div class="match-container">
+            <div class="column">
+                <h4>ภาพอุปกรณ์</h4>
+                <div id="imgCol"></div>
+            </div>
+            <div class="column">
+                <h4>ชื่ออุปกรณ์</h4>
+                <div id="nameCol"></div>
+            </div>
+            <div class="column">
+                <h4>หน้าที่อุปกรณ์</h4>
+                <div id="funcCol"></div>
+            </div>
+        </div>
+        <button class="btn" id="nextToStep3" style="display:none; background:#10b981;" onclick="goToStep(3)">ผ่านด่านแล้ว! ไปข้อถัดไป ➔</button>
+    </div>
+
+    <!-- STEP 3: Invent Idea -->
+    <div id="step3" class="step-section">
+        <h2>💡 ด่านที่ 2: ไอเดียนวัตกรน้อย</h2>
+        <p id="greetingUser" style="font-weight: 600; color: var(--primary);"></p>
+        <div class="form-group" style="margin-top: 10px;">
+            <label>นักเรียนจะนำอุปกรณ์เหล่านี้ไปพัฒนาต่อยอดให้เป็น "หุ่นยนต์แก้ปัญหา" อะไรในโรงเรียน?</label>
+            <textarea id="ideaText" rows="3" placeholder="พิมพ์อธิบายไอเดีย เช่น นำบอร์ด Micro:bit และเซนเซอร์มาทำเป็นหุ่นยนต์ตรวจจับขยะ..."></textarea>
+        </div>
+        <button class="btn" onclick="goToStep(4)">ไปออกแบบและวาดภาพหุ่นยนต์ ➔</button>
+    </div>
+
+    <!-- STEP 4: Draw & Describe -->
+    <div id="step4" class="step-section">
+        <h2>🎨 ด่านที่ 3: วาดภาพและออกแบบหุ่นยนต์</h2>
+        <div class="form-group">
+            <label>ตั้งชื่อหุ่นยนต์ของคุณ:</label>
+            <input type="text" id="robotName" placeholder="เช่น Smart Cleaner Bot">
+        </div>
+        <div class="canvas-container">
+            <label style="text-align:left; display:block;">วาดภาพหุ่นยนต์ตามจินตนาการ:</label>
+            <canvas id="drawCanvas" width="460" height="180"></canvas>
+            <div class="canvas-tools">
+                <button class="tool-btn active" onclick="setPenColor('#1e293b', this)">ปากกาหลัก</button>
+                <button class="tool-btn" onclick="setPenColor('#2563eb', this)">สีฟ้า</button>
+                <button class="tool-btn" onclick="setPenColor('#f59e0b', this)">สีส้ม</button>
+                <button class="tool-btn" onclick="clearCanvas()" style="background:#ef4444; color:white;">ล้างกระดาน</button>
+            </div>
+        </div>
+        <div class="form-group" style="margin-top: 8px;">
+            <label>หุ่นยนต์ของนักเรียนทำอะไรได้บ้าง?</label>
+            <textarea id="robotAbility" rows="2" placeholder="เช่น วิ่งเก็บขยะ ส่งของอัตโนมัติ"></textarea>
+        </div>
+        <button class="btn" onclick="finishGame()">ดูสรุปผลงานทั้งหมด 🎉</button>
+    </div>
+
+    <!-- STEP 5: Result & Screen Capture (1 ภาพรวม) -->
+    <div id="step5" class="step-section">
+        <h2>🏆 บัตรสรุปผลงานภารกิจ (แคปภาพนี้ส่งครู)</h2>
+        <p style="text-align:center; margin-bottom:5px; font-size:0.85rem;">กรอบด้านล่างนี้คือข้อมูลและผลงานทั้งหมดของนักเรียนจ้า</p>
+        
+        <!-- ส่วนที่จะถูกแคปเป็นภาพ -->
+        <div id="reportCard">
+            <div class="report-header">
+                <h3 style="color:var(--primary); margin:0 0 4px 0; font-size:1.1rem;">🤖 ใบสรุปผลงาน หุ่นยนต์เบื้องต้น ม.1</h3>
+                <p id="repStudent" style="margin:0; font-weight:600; color:#334155;"></p>
+            </div>
+            <div class="report-grid">
+                <div class="report-item">
+                    <strong>🧩 ผลการจับคู่อุปกรณ์:</strong><br>
+                    <span style="color:#10b981; font-weight:600;">✔ ผ่านถูกต้องครบถ้วน 100%</span>
+                </div>
+                <div class="report-item">
+                    <strong>💡 การพัฒนาหุ่นยนต์:</strong><br>
+                    <span id="repIdea" style="color:#475569;"></span>
+                </div>
+                <div class="report-item" style="grid-column: span 2;">
+                    <strong>🤖 ชื่อหุ่นยนต์ & ความสามารถ:</strong><br>
+                    ชื่อ: <span id="repRobotName" style="color:var(--primary); font-weight:600;"></span> | ทำได้: <span id="repAbility" style="color:#475569;"></span>
+                </div>
+            </div>
+            <div class="report-canvas-preview">
+                <strong>🎨 ภาพวาดหุ่นยนต์ตามจินตนาการ:</strong><br>
+                <img id="repCanvasImg" src="" alt="ภาพวาดหุ่นยนต์">
+            </div>
+        </div>
+
+        <button class="btn" style="background:#0284c7; margin-top:15px;" onclick="captureReport()">📸 กดแคปภาพสรุปผลงานเก็บไว้</button>
+        <button class="btn" style="background:#64748b; margin-top:8px;" onclick="location.reload()">เล่นใหม่อีกครั้ง 🔄</button>
+    </div>
+</div>
+
+<script>
+    const gameData = [
+        { id: 1, img: '<img src="https://img.icons8.com/color/96/microbit.png" alt="Micro:bit">', name: 'Micro:bit V2', func: 'สมองกลประมวลผลคำสั่ง' },
+        { id: 2, img: '<img src="https://img.icons8.com/color/96/breadboard.png" alt="Breadboard">', name: 'Breadboard 830 Point', func: 'แผงต่อวงจรไฟฟ้าชั่วคราว' },
+        { id: 3, img: '<img src="https://img.icons8.com/color/96/wires.png" alt="Wires">', name: 'Jumper Wire', func: 'สายไฟเชื่อมต่อสัญญาณ' }
+    ];
+
+    let selectedImg = null;
+    let selectedName = null;
+    let selectedFunc = null;
+    let matchedCount = 0;
+
+    let studentInfo = { no: '', nickname: '', name: '' };
+
+    function startToStep2() {
+        studentInfo.no = document.getElementById('studentNo').value;
+        studentInfo.nickname = document.getElementById('studentNickname').value;
+        studentInfo.name = document.getElementById('studentName').value;
+
+        if(!studentInfo.no || !studentInfo.nickname || !studentInfo.name) {
+            alert('กรุณากรอกข้อมูลเลขที่ ชื่อเล่น และชื่อ-นามสกุลให้ครบถ้วนจ้ะ!');
+            return;
+        }
+        document.getElementById('greetingUser').textContent = `ยอดเยี่ยมมากน้อง ${studentInfo.nickname} (${studentInfo.name}) ลุยไอเดียต่อเลย!`;
+        goToStep(2);
+        initMatchGame();
+    }
+
+    function goToStep(step) {
+        document.querySelectorAll('.step-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('step' + step).classList.add('active');
+        if(step === 4) {
+            initCanvas();
+        }
+    }
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function initMatchGame() {
+        const imgCol = document.getElementById('imgCol');
+        const nameCol = document.getElementById('nameCol');
+        const funcCol = document.getElementById('funcCol');
+        
+        imgCol.innerHTML = '';
+        nameCol.innerHTML = '';
+        funcCol.innerHTML = '';
+
+        let shuffledImgs = shuffle([...gameData]);
+        let shuffledNames = shuffle([...gameData]);
+        let shuffledFuncs = shuffle([...gameData]);
+
+        shuffledImgs.forEach(item => {
+            let div = document.createElement('div');
+            div.className = 'item-box';
+            div.innerHTML = item.img;
+            div.onclick = () => selectItem(div, 'img', item.id);
+            imgCol.appendChild(div);
+        });
+
+        shuffledNames.forEach(item => {
+            let div = document.createElement('div');
+            div.className = 'item-box';
+            div.textContent = item.name;
+            div.onclick = () => selectItem(div, 'name', item.id);
+            nameCol.appendChild(div);
+        });
+
+        shuffledFuncs.forEach(item => {
+            let div = document.createElement('div');
+            div.className = 'item-box';
+            div.textContent = item.func;
+            div.onclick = () => selectItem(div, 'func', item.id);
+            funcCol.appendChild(div);
+        });
+    }
+
+    function selectItem(element, type, id) {
+        if(element.classList.contains('matched')) return;
+
+        if(type === 'img') {
+            document.querySelectorAll('#imgCol .item-box').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedImg = { element, id };
+        } else if(type === 'name') {
+            document.querySelectorAll('#nameCol .item-box').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedName = { element, id };
+        } else if(type === 'func') {
+            document.querySelectorAll('#funcCol .item-box').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedFunc = { element, id };
+        }
+
+        checkMatch();
+    }
+
+    function checkMatch() {
+        if(selectedImg && selectedName && selectedFunc) {
+            if(selectedImg.id === selectedName.id && selectedName.id === selectedFunc.id) {
+                selectedImg.element.classList.add('matched');
+                selectedName.element.classList.add('matched');
+                selectedFunc.element.classList.add('matched');
+                
+                selectedImg.element.classList.remove('selected');
+                selectedName.element.classList.remove('selected');
+                selectedFunc.element.classList.remove('selected');
+
+                selectedImg = null;
+                selectedName = null;
+                selectedFunc = null;
+                matchedCount++;
+
+                if(matchedCount === gameData.length) {
+                    document.getElementById('nextToStep3').style.display = 'block';
+                }
+            } else {
+                alert('ยังไม่ถูกต้องจ้ะ ลองจับคู่ใหม่อีกครั้งให้ถูกต้องนะ!');
+                selectedImg.element.classList.remove('selected');
+                selectedName.element.classList.remove('selected');
+                selectedFunc.element.classList.remove('selected');
+                selectedImg = null;
+                selectedName = null;
+                selectedFunc = null;
+            }
+        }
+    }
+
+    // Canvas Drawing
+    let canvas, ctx, painting = false;
+    function initCanvas() {
+        canvas = document.getElementById('drawCanvas');
+        ctx = canvas.getContext('2d');
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#1e293b';
+
+        canvas.onmousedown = startPosition;
+        canvas.onmouseup = finishedPosition;
+        canvas.onmousemove = draw;
+
+        canvas.ontouchstart = (e) => { startPosition(e.touches[0]); e.preventDefault(); };
+        canvas.ontouchend = finishedPosition;
+        canvas.ontouchmove = (e) => { draw(e.touches[0]); e.preventDefault(); };
+    }
+
+    function startPosition(e) {
+        painting = true;
+        draw(e);
+    }
+
+    function finishedPosition() {
+        painting = false;
+        ctx.beginPath();
+    }
+
+    function draw(e) {
+        if(!painting) return;
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function setPenColor(color, btn) {
+        ctx.strokeStyle = color;
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function finishGame() {
+        const idea = document.getElementById('ideaText').value;
+        const rName = document.getElementById('robotName').value;
+        const rAbility = document.getElementById('robotAbility').value;
+
+        if(!idea || !rName || !rAbility) {
+            alert('กรุณากรอกข้อมูลไอเดีย ชื่อหุ่นยนต์ และความสามารถให้ครบถ้วนก่อนดูสรุปผลงานนะจ๊ะ!');
+            return;
+        }
+
+        document.getElementById('repStudent').textContent = `เลขที่ ${studentInfo.no} | ชื่อเล่น: ${studentInfo.nickname} | ชื่อ-นามสกุล: ${studentInfo.name}`;
+        document.getElementById('repIdea').textContent = idea;
+        document.getElementById('repRobotName').textContent = rName;
+        document.getElementById('repAbility').textContent = rAbility;
+        document.getElementById('repCanvasImg').src = canvas.toDataURL();
+
+        goToStep(5);
+    }
+
+    function captureReport() {
+        const reportElement = document.getElementById('reportCard');
+        html2canvas(reportElement).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Robot_Mission_No_${studentInfo.no}_${studentInfo.nickname}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+</script>
+
+</body>
+</html>
